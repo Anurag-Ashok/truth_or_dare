@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
-import 'package:truth_or_dare/models/question_model.dart';
-import 'package:truth_or_dare/viewmodels/question_viewmodel.dart';
-import 'package:truth_or_dare/views/home_screen.dart';
+import 'viewmodels/theme_viewmodel.dart';
+import 'viewmodels/language_viewmodel.dart';
+import 'viewmodels/question_viewmodel.dart';
+import 'views/splash_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await Hive.initFlutter();
-  // Keep this commented until g.dart is generated
-  // Hive.registerAdapter(QuestionAdapter());
-  await Hive.openBox<Question>("questionsBox");
-
+void main() {
   runApp(const MyApp());
 }
 
@@ -22,11 +15,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => QuestionViewModel()..init(),
-      child: const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: HomeScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
+        ChangeNotifierProvider(create: (_) => LanguageViewModel()),
+        ChangeNotifierProvider(create: (_) => QuestionViewModel()),
+      ],
+      child: Consumer<ThemeViewModel>(
+        builder: (_, themeVM, __) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: themeVM.theme,
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

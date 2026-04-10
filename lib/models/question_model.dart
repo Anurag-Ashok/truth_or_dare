@@ -1,14 +1,15 @@
-import 'package:hive/hive.dart';
-
-part 'question_model.g.dart';
-
-@HiveType(typeId: 0)
 class Question {
-  @HiveField(0)
   final String text;
-
-  @HiveField(1)
   final String type;
+  final String language;
 
-  Question({required this.text, required this.type});
+  Question({required this.text, required this.type, required this.language});
+
+  factory Question.fromJson(Map<String, dynamic> json) {
+    return Question(
+      text: json['text'],
+      type: json['type'],
+      language: json['language'],
+    );
+  }
 }

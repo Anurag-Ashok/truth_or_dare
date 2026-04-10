@@ -1,58 +1,47 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/question_model.dart';
-import '../services/local_storage_service.dart';
+import '../services/json_service.dart';
 
 class QuestionViewModel extends ChangeNotifier {
-  final LocalStorageService _storage = LocalStorageService();
-  final Random _random = Random();
+  List<Question> _all = [];
+  List<Question> _filtered = [];
 
-  List<Question> questions = [];
-  Question? currentQuestion;
-  String currentType = "truth";
+  int truthIndex = 0;
+  int dareIndex = 0;
 
-  void init() {
-    loadQuestions();
+  Future<void> init(String lang) async {
+    _all = await JsonService.loadQuestions();
+
+    _filtered = _all.where((q) => q.language == lang).toList();
+
+    _filtered.shuffle(Random());
+
+    truthIndex = 0;
+    dareIndex = 0;
+
+    notifyListeners();
   }
 
-  void loadQuestions() {
-    questions = _storage.getAllQuestions();
+  String getTruth() {
+    final truths = _filtered.where((q) => q.type == "truth").toList();
 
-    // Add default data if empty
-    if (questions.isEmpty) {
-      questions = [
-        Question(text: "What is your biggest fear?", type: "truth"),
-        Question(text: "Dance for 30 seconds", type: "dare"),
-        Question(text: "What is your biggest fear?", type: "truth"),
-        Question(text: "slap me", type: "dare"),
-        Question(text: "What is your favorite color?", type: "truth"),
-        Question(text: "kiss me", type: "dare"),
-        Question(text: "What is your biggest fear?", type: "truth"),
-        Question(text: "hug me", type: "dare"),
-      ];
+    if (truthIndex >= truths.length) {
+      truths.shuffle();
+      truthIndex = 0;
     }
 
-    notifyListeners();
+    return truths[truthIndex++].text;
   }
 
-  void startGame(String type) {
-    currentType = type;
-    nextQuestion();
-  }
+  String getDare() {
+    final dares = _filtered.where((q) => q.type == "dare").toList();
 
-  void nextQuestion() {
-    final filtered = questions.where((q) => q.type == currentType).toList();
+    if (dareIndex >= dares.length) {
+      dares.shuffle();
+      dareIndex = 0;
+    }
 
-    if (filtered.isEmpty) return;
-
-    currentQuestion = filtered[_random.nextInt(filtered.length)];
-
-    notifyListeners();
-  }
-
-  void addQuestion(String text, String type) {
-    final q = Question(text: text, type: type);
-    _storage.addQuestion(q);
-    loadQuestions();
+    return dares[dareIndex++].text;
   }
 }
